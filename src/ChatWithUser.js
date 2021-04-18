@@ -10,7 +10,6 @@ import firebase from 'firebase';
 
 
 const ChatWithUser = (props) => {
-    console.log(props.match.params);
 
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState([]);
