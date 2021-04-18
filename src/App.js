@@ -4,24 +4,33 @@ import Button from '@material-ui/core/Button';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import Message from './Message';
+import db from './firebase';
+import firebase from 'firebase';
 
 function App() {
 
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    {username: "alankar", text:"hey giyd"},
-    {username: "shaily", text:"wahts uo"}
-  ]);
+  const [messages, setMessages] = useState([]);
   const [username, setUsername] = useState('');
+
+  useEffect(() => { 
+    db.collection('messages').orderBy("timestamp", "asc").onSnapshot(snapshot => {
+      setMessages(snapshot.docs.map(doc => doc.data()))
+    })
+  }, []);
 
   useEffect(() => {
     setUsername(prompt("Enter your username : "));
-    }, [])
+    }, []);
 
 
   const sendMessage = (event) => {
     event.preventDefault();
-    setMessages([...messages, {username: username, text: input}]);
+    db.collection('messages').add({
+      message: input,
+      username: username,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
     setInput('');
   }
 
