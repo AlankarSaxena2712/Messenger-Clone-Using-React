@@ -1,5 +1,10 @@
 .App {
   text-align: center;
+  margin-bottom: 20px;
+}
+
+a, a:hover {
+  text-decoration: none;
 }
 
 .App img {
