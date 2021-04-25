@@ -5,7 +5,7 @@ import './User.css';
 
 const UserCard = (props) => {
     return (
-        <Link to={'/chat/' + props.user + '/' + props.roomName}>
+        <Link to={'/chat/' + props.roomName}>
             <Card className='User__card' variant='outlined'>
                 <CardContent>
                     <Typography variant='h5' component='h3'>

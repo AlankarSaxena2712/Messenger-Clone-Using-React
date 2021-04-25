@@ -5,8 +5,8 @@ import FormControl from '@material-ui/core/FormControl';
 import Message from './Message';
 import FlipMove from 'react-flip-move';
 import SendIcon from '@material-ui/icons/Send';
-import db from './firebase';
-import firebase from 'firebase';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 
 const ChatWithUser = (props) => {
@@ -15,28 +15,40 @@ const ChatWithUser = (props) => {
     const [messages, setMessages] = useState([]);
 
     useEffect(() => { 
-        db.collection(props.match.params.name).orderBy("timestamp", "desc").onSnapshot(snapshot => {
-            setMessages(snapshot.docs.map(doc => (
-                {id: doc.id, message: doc.data()}
-                )))
+        axios.get(`https://messenger-clone-backend.herokuapp.com/message/${props.data.match.params.name}`, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "token " + localStorage.getItem("token")
+            }
         })
-    }, [props.match.params.name]);
+        .then(response => {
+            setMessages(response.data.data)
+        })
+    });
 
     const sendMessage = (event) => {
         event.preventDefault();
-        db.collection(props.match.params.name).add({
-            message: input,
-            username: props.match.params.user,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        axios.post(`https://messenger-clone-backend.herokuapp.com/message/${props.data.match.params.name}`, {
+            "content": input,
+            "sender": localStorage.getItem('user'),
+            "room": props.data.match.params.name
+        }, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "token " + localStorage.getItem("token")
+            }
+        }).then(response => {
+            setMessages([...messages, response.data.data])
         })
         setInput('');
     }
     return (
         <div>
+            <h4><Link to='/'>Show All Rooms</Link></h4>
             <FlipMove>
                 {
-                    messages.map(({id, message}) => (
-                        <Message key={id} message={message} username={props.match.params.user} />
+                    messages.map(({id, content, sender}) => (
+                        <Message key={id} message={content} username={sender} />
                     ))
                 }
             </FlipMove>

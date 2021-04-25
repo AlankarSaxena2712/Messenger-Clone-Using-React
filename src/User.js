@@ -1,82 +1,70 @@
-import { Button, Card, CardContent, FormControl, Input, InputLabel, Typography } from '@material-ui/core'
+import { Button, FormControl, Input, InputLabel } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
-import db from './firebase';
-import { Link } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import './User.css';
 import UserCard from "./UserCard";
-import firebase from 'firebase';
+import axios from 'axios';
 
-const User = () => {
-
-    const [username, setUsername] = useState('');
-    const [users, setUsers] = useState([]);
+const User = (props) => {
     const [currentUser, setCurrentUser] = useState('');
-    const [rooms, setRooms] = useState('');
+    const [rooms, setRooms] = useState([]);
+    const [newRoom, setNewRoom] = useState('');
 
     useEffect(() => {
-        db.collection('rooms').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
-            setUsers(snapshot.docs.map(doc => ({id: doc.id, room: doc.data()})))
-        });
+        axios.get("https://messenger-clone-backend.herokuapp.com/room", {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "token " + localStorage.getItem("token")
+            }
+        })
+        .then(response => {
+            setRooms(response.data.data)
+        })
+        setCurrentUser(localStorage.getItem('user'));
     }, []);
-
-    const saveUsername = (event) => {
-        event.preventDefault();
-        db.collection('users').add({
-            user: username
-        });
-        setCurrentUser(username);
-        setUsername('');
-    };
 
     const saveRoom = (event) => {
         event.preventDefault();
-        db.collection(rooms).add({})
-        db.collection('rooms').add({
-            name: rooms,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        axios.post("https://messenger-clone-backend.herokuapp.com/room", {"name": newRoom}, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "token " + localStorage.getItem("token")
+            }
         })
-        setRooms('');
+        .then(response => {
+            setRooms([...rooms, response.data.data])
+        })
+        setNewRoom('');
     }
+
 
     return (
         <div>
-            {currentUser ? <h3>Welcome, {currentUser}</h3>
-            :
-                <form>
-                    <FormControl>
-                        <InputLabel>Enter Username</InputLabel>
-                        <Input value={username} onChange={event => setUsername(event.target.value)} />
-                        <Button disabled={currentUser} onClick={saveUsername} type='submit' variant='contained' color='primary'>Save</Button>
-                    </FormControl>
-                </form>
-            }
+            {
+                props.auth?
+                <>
+                <h3>Welcome, {currentUser}</h3>
             <form>
                 <FormControl>
                     <InputLabel>Create Room</InputLabel>
-                    <Input value={rooms} onChange={event => setRooms(event.target.value)} />
+                    <Input value={newRoom} onChange={event => setNewRoom(event.target.value)} />
                     <Button disabled={!currentUser} onClick={saveRoom} type='submit' variant='contained' color='primary'>Create</Button>
                 </FormControl>
             </form>
             {
                 !currentUser ? <h3>Please take a username to further proceed!!!</h3> :
                 <div className='user__Card'>
-                    <Link to='/chat'>
-                        <Card className='User__card' variant='outlined'>
-                            <CardContent>
-                                <Typography variant='h5' component='h3'>
-                                    Chat with all
-                                </Typography>
-                            </CardContent>
-                        </Card> 
-                    </Link>
                     {
-                        users.map(({id, room}) => (
-                                <UserCard key={id} roomName={room.name} user={currentUser} />
+                        rooms.map(({id, name}) => (
+                                <UserCard key={id} roomName={name} user={currentUser} />
                         ))
                     }
                 </div>
             }      
-        </div>
+        </>:
+        <Redirect to='/login'></Redirect>
+    }
+    </div>
     )
 }
 

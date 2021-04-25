@@ -4,14 +4,14 @@ import './Message.css';
 
 const Message = forwardRef(({message, username}, ref) => {
 
-    const isUser = username === message.username;
+    const isUser = username === localStorage.getItem('user');
 
     return (
         <div ref={ref} className={`message ${isUser && 'message__user'}`}>
             <Card className={isUser ? "message_userCard" : "message_guestCard"}>
                 <CardContent>
                     <Typography variant='h5' component='h2'>
-                        {isUser ? `${message.message}` : `${message.username || "Unknown User"} : ${message.message}`}
+                        {isUser ? `${message}` : `${username || "Unknown User"} : ${message}`}
                     </Typography>
                 </CardContent>
             </Card>
