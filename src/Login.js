@@ -22,7 +22,7 @@ const Login = ({ setAuth }) => {
             localStorage.setItem("user", username);
             setAuth(true);
             history.push("/", {loggedIn: true});
-        })
+        }).catch(error => {alert("Wrong Username or Password!!!")})
     }
 
 
